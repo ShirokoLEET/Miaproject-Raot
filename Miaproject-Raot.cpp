@@ -20,6 +20,7 @@ void OpenConsole() {
 
 DWORD WINAPI HackThread(HMODULE hModule) {
     OpenConsole();
+    CheatInit();
     auto status = kiero::init(kiero::RenderType::D3D11);
     std::cout << "[~] Kiero init status = " << status << std::endl;
 
@@ -43,9 +44,8 @@ DWORD WINAPI HackThread(HMODULE hModule) {
             void** pPresent = (void**)kiero::getMethodsTable()[8];
             if (MH_CreateHook(pPresent, hkPresent, reinterpret_cast<void**>(&oPresent)) == MH_OK) {
                 if (MH_EnableHook(pPresent) == MH_OK) {
+                    
                     std::cout << "[+] Hooked Present successfully.\n";
-					CheatInit(); 
-
                 }
                 else {
                     std::cerr << "[!] Failed to enable Present hook.\n";
@@ -71,9 +71,3 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     return TRUE;
 }
 
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
-LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-        return true;
-    return DefWindowProc(hWnd, msg, wParam, lParam);
-}

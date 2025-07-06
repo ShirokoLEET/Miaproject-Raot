@@ -3,12 +3,18 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include <d3d11.h>
+#include "CheatBase.h"
+#include <Windows.h>
+#include "Drawer.h"
 #pragma comment(lib, "d3d11.lib")
 
 ID3D11Device* g_pd3dDevice = nullptr;
 ID3D11DeviceContext* g_pd3dDeviceContext = nullptr;
 ID3D11RenderTargetView* g_mainRenderTargetView = nullptr;
 IDXGISwapChain* g_pSwapChain = nullptr;
+LRESULT __stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+WNDPROC oWndProc = nullptr;
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool menu_open = true;
 
@@ -16,16 +22,32 @@ HWND hwnd = nullptr;
 typedef HRESULT(__stdcall* Present)(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
 Present oPresent = nullptr;
 
+LRESULT __stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+        return true;
+
+    return CallWindowProc(oWndProc, hWnd, msg, wParam, lParam);
+}
+
 void RenderMenu() {
     if (!menu_open) return;
+
     ImGui::Begin("IL2CPP Hack Menu", &menu_open);
     ImGui::Text("Welcome to the menu!");
-    static bool aimbot = false;
-    ImGui::Checkbox("Aimbot", &aimbot);
-    static float fov = 90.0f;
-    ImGui::SliderFloat("FOV", &fov, 30.0f, 180.0f);
+    if (ImGui::Button("Aimbot")){
+            
+    }
+
+    if (ImGui::Button("Click Me")) {
+        std::cout << "Button clicked!" << std::endl;
+		Debug();
+    }
+    
+
     ImGui::End();
 }
+
 
 void InitImGui() {
     DXGI_SWAP_CHAIN_DESC sd;
@@ -40,6 +62,8 @@ void InitImGui() {
     g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_mainRenderTargetView);
     pBackBuffer->Release();
 
+    oWndProc = (WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)WndProc);
+
     ImGui::CreateContext();
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
@@ -49,6 +73,7 @@ HRESULT __stdcall hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
     static bool initialized = false;
     if (!initialized) {
         g_pSwapChain = pSwapChain;
+        UnityResolve::ThreadAttach();
         InitImGui();
         initialized = true;
     }
@@ -61,7 +86,15 @@ HRESULT __stdcall hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+
     RenderMenu();
+	UpdatePlayerPositions();
+	Drawer::RenderPlayers();
+
+
+
+
+
 
     ImGui::Render();
     g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, NULL);
@@ -69,3 +102,5 @@ HRESULT __stdcall hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
 
     return oPresent(pSwapChain, SyncInterval, Flags);
 }
+
+

@@ -66,6 +66,9 @@
     <ClCompile Include="il2cpp_struct.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Drawer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Menu.h">
@@ -74,7 +77,7 @@
     <ClInclude Include="CheatBase.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="il2cpp_struct.h">
+    <ClInclude Include="Drawer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
